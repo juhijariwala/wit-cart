@@ -1,30 +1,46 @@
 package com.wit.cart.witcart.service;
 
-import com.wit.cart.witcart.mapper.CartMapper;
-import com.wit.cart.witcart.mapper.MyBatisUtil;
-import com.wit.cart.witcart.model.Item;
-import org.apache.ibatis.session.SqlSession;
+import com.wit.cart.witcart.mapper.RedisMapper;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 
 @Service
 public class CartService {
-        private CartMapper cartMapper;
-        private SqlSession sqlSession;
+
+    private RedisMapper redisMapper;
 
     public CartService() {
-            this(MyBatisUtil.getSqlSessionFactory().openSession());
-        }
-
-    public CartService(SqlSession sqlSession) {
-            this.sqlSession= sqlSession;
-            this.cartMapper = sqlSession.getMapper(CartMapper.class);
-        }
+        this.redisMapper = new RedisMapper();
+    }
 
 
-        public Item fetchItem(String itemId) {
-            Item item = cartMapper.fetchItem(itemId);
-            sqlSession.commit();
-            return item;
+    public String fetchItem(int itemId, int customerId) {
+
+        try {
+
+            URL url = new URL("http://localhost:8081/catalog-service/get-item?id=1");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            System.out.println(connection.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        //need one more request to verify customerId is valid or not
+
+        return redisMapper.addItemToCart(itemId, customerId);
+
+    }
+
+    public String deleteItemFromCart(String itemId) {
+        return redisMapper.deleteItemFromCart(itemId);
+    }
+
+    public String viewItemFromCart() {
+        return redisMapper.viewItemsFromCart();
+    }
 }
